@@ -89,7 +89,26 @@ def depthFirstSearch(problem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    stack = util.Stack()
+    visited = []
+    initialNode = (problem.getStartState(), [])
+
+    stack.push(initialNode)
+
+    while not stack.isEmpty():
+        currState, moves = stack.pop()
+        if currState not in visited:
+            visited.append(currState)
+
+            if problem.isGoalState(currState):
+                return moves
+            else:
+                successors = problem.getSuccessors(currState)
+                for successorState, successorMove, successorCost in successors:
+                    newMove = moves + [successorMove]
+                    newNode = (successorState, newMove)
+                    stack.push(newNode)
+    return moves
 
 
 def breadthFirstSearch(problem):
@@ -126,7 +145,27 @@ def breadthFirstSearch(problem):
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    priorityQueue = util.PriorityQueue()
+    visited = {}
+    initialNode = (problem.getStartState(), [], 0)
+
+    priorityQueue.push(initialNode, 0)
+
+    while not priorityQueue.isEmpty():
+        currState, moves, currCost = priorityQueue.pop()
+        if (currState not in visited) or (currCost < visited[currState]):
+            visited[currState] = currCost
+            if problem.isGoalState(currState):
+                return moves
+            else:
+                successors = problem.getSuccessors(currState)
+                for successorState, successorMove, successorCost in successors:
+                    newMove = moves + [successorMove]
+                    newCost = currCost + successorCost
+                    newNode = (successorState, newMove, newCost)
+
+                    priorityQueue.update(newNode, newCost)
+    return moves
 
 
 def nullHeuristic(state, problem=None):
