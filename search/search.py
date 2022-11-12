@@ -19,6 +19,7 @@ Pacman agents (in searchAgents.py).
 
 import util
 
+
 class SearchProblem:
     """
     This class outlines the structure of a search problem, but doesn't implement
@@ -70,7 +71,8 @@ def tinyMazeSearch(problem):
     from game import Directions
     s = Directions.SOUTH
     w = Directions.WEST
-    return  [s, s, w, s, w, w, s, w]
+    return [s, s, w, s, w, w, s, w]
+
 
 def depthFirstSearch(problem):
     """
@@ -89,15 +91,43 @@ def depthFirstSearch(problem):
     "*** YOUR CODE HERE ***"
     util.raiseNotDefined()
 
+
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
+    queue = util.Queue()  # bfs is using a queue
+    start = (problem.getStartState(), [])  # the start node: location, path
+    visited = []  # list to check if a node was already visited
+
+    queue.push(start)  # insert the start node in queue
+
+    while not queue.isEmpty():
+        current_node = queue.pop()
+        # 0 for location, 1 for path
+
+        if problem.isGoalState(current_node[0]):
+            return current_node[1]  # if current_node is the goal state, then we return its path
+
+        if current_node[0] not in visited:
+            visited.append(current_node[0])  # we add it to the list of visited nodes
+
+            successors = list(problem.getSuccessors(current_node[0]))  # keep the successors and their paths
+
+            for successor in successors:
+                if successor[0] not in visited:
+                    path = current_node[1] + [successor[1]]  # we reconstruct the path
+                    queue.push((successor[0], path))  # we add them to the queue
+
+    # return empty if we don't have any nodes left to explore
+    return []
     util.raiseNotDefined()
+
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
     util.raiseNotDefined()
+
 
 def nullHeuristic(state, problem=None):
     """
@@ -106,9 +136,41 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
+
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
+
+    priority_queue = util.PriorityQueue()  # aStarSearch is using a priority queue
+    start = (problem.getStartState(), [], 0)  # the start node: location, path, cost
+    visited = []  # list to check if a node was already visited
+
+    priority_queue.push(start, 0)  # insert the start node in queue
+
+    while not priority_queue.isEmpty():
+        current_node = priority_queue.pop()
+        # 0 for location, 1 for path, 2 for cumulative cost
+
+        if problem.isGoalState(current_node[0]):
+            return current_node[1]  # if current_node is the goal state, then we return its path
+
+        if current_node[0] not in visited:
+            visited.append(current_node[0])  # we add it to the list of visited nodes
+
+            successors = list(problem.getSuccessors(current_node[0]))  # keep the successors and their paths
+
+            for successor in successors:
+                if successor[0] not in visited:
+                    path = current_node[1] + [successor[1]]  # we reconstruct the path
+                    # the path cost to the current node + the path cost to the current successor
+                    initial_cost = current_node[2] + successor[2]
+                    # the total cost is the sum  of the previous cost and the heuristic of the successor
+                    cost = initial_cost + heuristic(successor[0], problem)
+                    priority_queue.push((successor[0], path, initial_cost), cost)  # we add them to the priority queue
+
+    # return empty if we don't have any nodes left to explore
+    return []
+
     util.raiseNotDefined()
 
 
