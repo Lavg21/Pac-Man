@@ -305,16 +305,26 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-
-        util.raiseNotDefined()
+        return (self.startingPosition, [])
+        #util.raiseNotDefined()
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-
-        util.raiseNotDefined()
+        currentPosition = state[0]
+        visitedCorners = state[1]
+        if currentPosition in self.corners:
+            if currentPosition not in visitedCorners:
+                visitedCorners.append(currentPosition)
+            if len(visitedCorners) == 4:
+                return True
+            else:
+                return False
+        else:
+            return False
+        #util.raiseNotDefined()
 
     def getSuccessors(self, state):
         """
@@ -327,6 +337,8 @@ class CornersProblem(search.SearchProblem):
             is the incremental cost of expanding to that successor
         """
 
+        x,y = state[0] #current position
+        visitedCorners = state[1]
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
@@ -337,6 +349,17 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x+dx), int(y+dy)
+            nextNode = (nextx, nexty)
+            hitsWall = self.walls[nextx][nexty]
+            if not hitsWall:
+                successorsVisitedCorners = list(visitedCorners)
+                if nextNode in self.corners:
+                    if nextNode not in successorsVisitedCorners:
+                        successorsVisitedCorners.append(nextNode)
+                successor = ((nextNode, successorsVisitedCorners), action, 1)
+                successors.append(successor)
 
         self._expanded += 1  # DO NOT CHANGE
         return successors
@@ -460,7 +483,6 @@ class AStarFoodSearchAgent(SearchAgent):
         self.searchFunction = lambda prob: search.aStarSearch(prob, foodHeuristic)
         self.searchType = FoodSearchProblem
 
-
 def foodHeuristic(state, problem):
     """
     Your heuristic for the FoodSearchProblem goes here.
@@ -491,7 +513,20 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+    start = problem.startingGameState
+    foodList = foodGrid.asList()
+    dist = 0
+
+    #no food -> return 0
+    if len(foodList) == 0:
+        return 0
+
+    # return maximum distance between the current position and the farthest food
+    for food in foodList:
+        distanceToFood = mazeDistance(position, food, start)
+        if distanceToFood > dist:
+            dist = distanceToFood
+    return dist
 
 
 class ClosestDotSearchAgent(SearchAgent):
