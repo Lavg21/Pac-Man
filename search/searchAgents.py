@@ -40,7 +40,7 @@ from game import Actions
 import util
 import time
 import search
-
+from util import manhattanDistance
 
 class GoWestAgent(Agent):
     "An agent that goes West until it can't."
@@ -395,26 +395,40 @@ def cornersHeuristic(state, problem):
     walls = problem.walls  # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
+    node = state[0]
+    position = node  # current possition
+    visited = state[1]
+    unvisited = []  # unvisited corners
+    heuristic = 0  # the shortest path
 
-    # Goal state #
-    # if problem.isGoalState(state):
-    #     return 0
-    #
-    # distance = 0
-    # visited = state[1]
-    #
-    # for corner in visited:  # We are using the same way manhattanheuristic does just for
-    #     position = state[0]  # the corners now to find the distance
-    #     corner_position = corner[0]
-    #
-    #     if not corner[1]:
-    #         corner_distance = abs(corner_position[0] - position[0]) + abs(corner_position[1] - position[1])
-    #         distance = max(distance, corner_distance)
-    #
-    # return distance
+    # there are 4 possible corners
+    for i in range(4):
+        if corners[i] not in visited:
+            unvisited.append(corners[i])  # we add the corners we didn't visit
 
-## de terminat q5
+    length = len(unvisited)  # the length of the unnvisited corners list
+    while length:
+        # we compute the distance depending on the corner from the list of unvisited corners
+        dist, corner = min([(manhattanDistance(position, corner), corner) for corner in unvisited])
 
+        # we actualize the current position which is a corner from the unvisited list
+        position = corner
+
+        # we add the distance to the path
+        heuristic += dist
+
+        unvisited.remove(corner)  # we remove the corner we just visited
+        length = length - 1  # and update the length of the list of unvisited corners
+
+    return heuristic  # we return the sum of the shortest path
+
+
+class AStarCornersAgent(SearchAgent):
+    "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
+
+    def __init__(self):
+        self.searchFunction = lambda prob: search.aStarSearch(prob, cornersHeuristic)
+        self.searchType = CornersProblem
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -559,6 +573,8 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
+        actions = search.bfs(problem)
+        return actions  # we are calling the bfs from "search.py"
         util.raiseNotDefined()
 
 
@@ -596,6 +612,12 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         x, y = state
 
         "*** YOUR CODE HERE ***"
+        foodList = self.food.asList() # we store the food as a list
+        # if state is true then we have reached the food
+        if state in foodList:
+            return True
+        else:
+            return False
         util.raiseNotDefined()
 
 
