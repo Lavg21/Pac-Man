@@ -395,8 +395,7 @@ def cornersHeuristic(state, problem):
     walls = problem.walls  # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
-    node = state[0]
-    position = node  # current possition
+    position = state[0]  # current possition
     visited = state[1]
     unvisited = []  # unvisited corners
     heuristic = 0  # the shortest path

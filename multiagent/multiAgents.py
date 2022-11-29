@@ -17,6 +17,7 @@ from game import Directions
 import random
 import util
 import math
+import sys
 
 from game import Agent
 
@@ -83,7 +84,7 @@ class ReflexAgent(Agent):
         totalFood = len(food)  # we retain the total number of the food displayed on the grid
         foodDistance = math.inf  # we initialize the foodDistance with the highest value possible
         
-        totalGhosts = len(newGhostStates)
+        totalGhosts = len(newGhostStates)  # we retain the number of ghosts
 
         # if we don't have any food available
         if totalFood == 0:
@@ -211,16 +212,95 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     """
       Your minimax agent with alpha-beta pruning (question 3)
     """
-
     def getAction(self, gameState):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        def AlfaBeta(gameState, agent, depth):
+
+            # the maximum and minimum values
+            mn = math.inf
+            mx = -math.inf
+
+            bestValue = []  # the list which will contain the final result
+
+            # If the algorithm reached the max depth
+            if depth == self.depth:
+                return 0, self.evaluationFunction(gameState)
+
+            # Increase the depth if the ghosts finished a round
+            if agent == gameState.getNumAgents() - 1:
+                depth += 1
+
+            # If we don't have an agent, we terminate the state
+            if not gameState.getLegalActions(agent):
+                return 0, self.evaluationFunction(gameState)
+
+            # Calculate the nextAgent
+            if agent == gameState.getNumAgents() - 1:
+                nextAgent = self.index  # nextAgent = pacman
+            else:
+                nextAgent = agent + 1  # nextAgent = ghost
+
+            # We will try to find the MinMax value for every successor
+            # depending on the actions of the new agent
+            actions = gameState.getLegalActions(agent)
+            for action in actions:
+                successor = gameState.generateSuccessor(agent, action)  # retain the successor
+
+                # If the list of results is empty
+                if not bestValue:
+                    nextValue = AlfaBeta(successor, nextAgent, depth)  # we find the best value
+
+                    bestValue.append(nextValue[0])  # and we put it in the list
+                    bestValue.append(action)  # along with the action
+
+                    # We fix the limits for the first node
+                    if agent == self.index:
+                        mn = max(mn, bestValue[0])
+                    else:
+                        mx = min(mx, bestValue[0])
+                else:
+
+                    previousValue = bestValue[0]  # store the previous value
+                    nextValue = AlfaBeta(successor, nextAgent, depth)  # calculate the next value
+
+                    # The MaxAgent is pacman
+                    if agent == self.index:
+                        # we check which value is better and keep it
+                        if nextValue[0] > previousValue:
+                            bestValue[0] = nextValue[0]
+                            bestValue[1] = action
+                            mn = max(bestValue[0], mn)  # we actualize the min value
+                        else:
+                            bestValue[0] = nextValue[0]
+                            bestValue[1] = action
+                            mx = min(bestValue[0], mx)  # we actualize the max value
+                    # The MinAgent is a ghost
+                    else:
+                        # we check which value is better and keep it
+                        if nextValue[0] < previousValue:
+                            bestValue[0] = nextValue[0]
+                            bestValue[1] = action
+                            mn = min(bestValue[0], mx)  # we actualize the max value
+                        else:
+                            bestValue[0] = nextValue[0]
+                            bestValue[1] = action
+                            mx = max(bestValue[0], mn)  # we actualize the min value
+
+                    # We check which MinMax value is better than the previous one
+                    if (bestValue[0] < mn and agent != self.index) or (bestValue[0] > mx and agent == self.index):
+                        return bestValue  # and return it
+
+            return bestValue
+
+        # We call the AlfaBeta with pacman as player at first and initial depth 0
+        return AlfaBeta(gameState, self.index, 0)
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
+
     """
       Your expectimax agent (question 4)
     """
