@@ -405,10 +405,14 @@ def cornersHeuristic(state, problem):
         if corners[i] not in visited:
             unvisited.append(corners[i])  # we add the corners we didn't visit
 
-    length = len(unvisited)  # the length of the unnvisited corners list
+    length = len(unvisited)  # the length of the unvisited corners list
     while length:
         # we compute the distance depending on the corner from the list of unvisited corners
-        dist, corner = min([(manhattanDistance(position, corner), corner) for corner in unvisited])
+        tupleList = []
+        for corner in unvisited:
+            tupleList.append((manhattanDistance(position, corner), corner))
+
+        dist, corner = min(tupleList)
 
         # we actualize the current position which is a corner from the unvisited list
         position = corner
