@@ -245,7 +245,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             if state.isWin() or state.isLose():
                 return state.getScore()
             actions = state.getLegalActions(pacman_agent)
-            max_score = float("-inf")
+            max_score = -math.inf
             aux_score = max_score
             chosen_action = Directions.STOP
             for action in actions:
@@ -267,14 +267,11 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                 return state.getScore()
             next_ghost = ghost + 1
             if ghost == state.getNumAgents() - 1:
-                # Although I call this variable next_ghost, at this point we are referring to a pacman agent.
-                # I never changed the variable name and now I feel bad. That's why I am writing this guilty comment :(
                 next_ghost = pacman_agent
             actions = state.getLegalActions(ghost)
-            min_score = float("inf")
+            min_score = math.inf
             aux_score = min_score
             for action in actions:
-                # We are on the last ghost and it will be Pacman's turn next.
                 if next_ghost == pacman_agent:
                     if depth == self.depth - 1:
                         aux_score = self.evaluationFunction(
