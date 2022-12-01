@@ -18,6 +18,7 @@ Pacman agents (in searchAgents.py).
 """
 
 import util
+from game import Directions
 
 
 class SearchProblem:
@@ -210,7 +211,34 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     # return empty if we don't have any nodes left to explore
     return []
 
-    util.raiseNotDefined()
+def iterativeDeepeningSearch(problem):
+    stack = util.Stack()
+    limit = 1
+
+    # repeat search until we reach the goal
+    while True:
+        # list to "mark" the visited nodes
+        visited = []
+        # push the start node to the stack
+        stack.push((problem.getStartState(), [], 0))
+        (state, dir, cost) = stack.pop()
+        visited.append(state)
+        while not problem.isGoalState(state):
+            successors = problem.getSuccessors(state)
+            for successor in successors:
+                if(not successor[0] in visited) and (cost+successor[2]<=limit):
+                    stack.push((successor[0], dir+ [successor[1]], cost+successor[2]))
+                    visited.append(successor[0])
+                
+            # if the goal is not reached withing the current depth, increase the depth and break
+            if stack.isEmpty():
+                break
+            
+            (state, dir, cost) = stack.pop()
+
+        if problem.isGoalState(state):
+                return dir
+        limit += 1
 
 
 # Abbreviations
@@ -218,3 +246,4 @@ bfs = breadthFirstSearch
 dfs = depthFirstSearch
 astar = aStarSearch
 ucs = uniformCostSearch
+ids = iterativeDeepeningSearch
