@@ -234,62 +234,92 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     Your minimax agent with alpha-beta pruning (question 3)
     """
 
-    def getAction(self, gameState: GameState):
+    def getAction(self, gameState):
         """
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        pacman_agent = 0
+
+        pacman = 0
 
         def maximizer(state, depth, alfa, beta):
+            mx = -math.inf  # the initial maximum value
+            nextAction = Directions.STOP  # stop command
+            actions = state.getLegalActions(pacman)  # the actions of the agent
+
+            # we terminate the state in either case and return the score
             if state.isWin() or state.isLose():
                 return state.getScore()
-            actions = state.getLegalActions(pacman_agent)
-            max_score = -math.inf
-            aux_score = max_score
-            chosen_action = Directions.STOP
-            for action in actions:
-                aux_score = minimizer(state.generateSuccessor(
-                    pacman_agent, action), depth, 1, alfa, beta)
-                if aux_score > max_score:
-                    max_score = aux_score
-                    chosen_action = action
-                alfa = max(alfa, max_score)
-                if max_score > beta:
-                    return max_score
-            if depth == 0:
-                return chosen_action
-            else:
-                return max_score
 
-        def minimizer(state, depth, ghost, alfa, beta):
+            # we will try to find the max value for every successor
+            # depending on the actions of the agent
+            for action in actions:
+                # retain the successor
+                successor = state.generateSuccessor(
+                    pacman, action)
+
+                # we calculate the next value
+                nextValue = minimizer(successor, depth, 1, alfa, beta)
+
+                # we find the best value
+                if nextValue > mx:
+                    mx = nextValue  # keep it
+                    nextAction = action  # and actualize the nextAction
+
+                # we compare the best value with beta
+                if mx > beta:
+                    return mx
+
+                alfa = max(mx, alfa)  # keep the new alfa value
+
+            # if the algorithm reached the max depth
+            if depth == 0:
+                return nextAction  # then we stop
+            else:
+                return mx  # else we return the best value
+
+        def minimizer(state, depth, agent, alfa, beta):
+
+            mn = math.inf  # the initial minimum value
+            nextAgent = agent + 1  # nextAgent = ghost
+            actions = state.getLegalActions(agent)  # the actions of the agent
+
+            # we terminate the state in either case and return the score
             if state.isLose() or state.isWin():
                 return state.getScore()
-            next_ghost = ghost + 1
-            if ghost == state.getNumAgents() - 1:
-                next_ghost = pacman_agent
-            actions = state.getLegalActions(ghost)
-            min_score = math.inf
-            aux_score = min_score
+
+            if agent == state.getNumAgents() - 1:
+                nextAgent = pacman
+
+            # we will try to find the min value for every successor
+            # depending on the actions of the agent
             for action in actions:
-                if next_ghost == pacman_agent:
+                # we retain the successor
+                successor = state.generateSuccessor(agent, action)
+
+                if nextAgent == pacman:
+
                     if depth == self.depth - 1:
-                        aux_score = self.evaluationFunction(
-                            state.generateSuccessor(ghost, action))
+                        getScore = self.evaluationFunction(successor)
                     else:
-                        aux_score = maximizer(state.generateSuccessor(
-                            ghost, action), depth + 1, alfa, beta)
+                        getScore = maximizer(successor, depth + 1, alfa, beta)
+
                 else:
-                    aux_score = minimizer(state.generateSuccessor(
-                        ghost, action), depth, next_ghost, alfa, beta)
-                if aux_score < min_score:
-                    min_score = aux_score
-                beta = min(beta, min_score)
-                if min_score < alfa:
-                    return min_score
-            return min_score
+                    getScore = minimizer(successor, depth, nextAgent, alfa, beta)
+
+                # we try to get the min value
+                if getScore < mn:
+                    mn = getScore
+
+                # we compare the score with alfa
+                if mn < alfa:
+                    return mn
+
+                beta = min(mn, beta)  # keep the new alfa value
+
+            return mn  # we return the minimum
+
         return maximizer(gameState, 0, -math.inf, math.inf)
-                    
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
