@@ -192,7 +192,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
                 next_agent = pacman_agent
             actions = state.getLegalActions(agent)
             min_score = float("inf")
-            score = min_score
+            score = min_scoreS
             for action in actions:
                 if next_agent == pacman_agent:  # we are on the last ghost and it will be Pacman's turn next
                     if depth == self.depth - 1:
