@@ -59,15 +59,15 @@ class SearchProblem:
          actions: A list of actions to take
 
         This method returns the total cost of a particular sequence of actions.
-        The sequence must be composed of legal moves.
+        The sequence must be composed of legal node_actions.
         """
         util.raiseNotDefined()
 
 
 def tinyMazeSearch(problem):
     """
-    Returns a sequence of moves that solves tinyMaze.  For any other maze, the
-    sequence of moves will be incorrect, so only use this for tinyMaze.
+    Returns a sequence of node_actions that solves tinyMaze.  For any other maze, the
+    sequence of node_actions will be incorrect, so only use this for tinyMaze.
     """
     from game import Directions
     s = Directions.SOUTH
@@ -90,26 +90,39 @@ def depthFirstSearch(problem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
+    # dfs uses a stack
     stack = util.Stack()
+    # we'll "mark" the nodes that have been visited during the search
     visited = []
-    initialNode = (problem.getStartState(), [])
+    # the start node that has a position and a path
+    initial_node = (problem.getStartState(), [])
 
-    stack.push(initialNode)
+    # push the start node to the stack
+    stack.push(initial_node)
 
     while not stack.isEmpty():
-        currState, moves = stack.pop()
-        if currState not in visited:
-            visited.append(currState)
-
-            if problem.isGoalState(currState):
-                return moves
+        # every node has a state, a set of legal actions and a cost
+        node_state, node_actions = stack.pop()
+        # check if the current node has been visited or not
+        if node_state not in visited:
+            # if not, add it to the visited list
+            visited.append(node_state)
+            
+            # check if the current node is not the goal
+            if problem.isGoalState(node_state):
+                # return the path 
+                return node_actions
             else:
-                successors = problem.getSuccessors(currState)
-                for successorState, successorMove, successorCost in successors:
-                    newMove = moves + [successorMove]
-                    newNode = (successorState, newMove)
-                    stack.push(newNode)
-    return moves
+                # if not, expand the node
+                successors = list(problem.getSuccessors(node_state))
+                # successor[0] = state; successor[1] = legal actions
+                for successor in successors:
+                    # build the path 
+                    path = node_actions + [successor[1]]
+                    new_node = (successor[0], path)
+                    # create a node with the state of the successor and the path to it and push it to the stack
+                    stack.push(new_node)
+    return node_actions
 
 
 def breadthFirstSearch(problem):
@@ -146,27 +159,45 @@ def breadthFirstSearch(problem):
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
+    # ucs uses a priority queue
     priorityQueue = util.PriorityQueue()
+    # we'll "mark" the nodes that have been visited during the search
     visited = {}
-    initialNode = (problem.getStartState(), [], 0)
+    # the start node that has a position, a set of legal actions and a cost
+    initial_node = (problem.getStartState(), [], 0)
 
-    priorityQueue.push(initialNode, 0)
+    # push the start node to the priority queue
+    priorityQueue.push(initial_node, 0)
 
     while not priorityQueue.isEmpty():
-        currState, moves, currCost = priorityQueue.pop()
-        if (currState not in visited) or (currCost < visited[currState]):
-            visited[currState] = currCost
-            if problem.isGoalState(currState):
-                return moves
-            else:
-                successors = problem.getSuccessors(currState)
-                for successorState, successorMove, successorCost in successors:
-                    newMove = moves + [successorMove]
-                    newCost = currCost + successorCost
-                    newNode = (successorState, newMove, newCost)
+        # every node has a state, a set of legal actions and a cost
+        node_state, node_actions, node_cost = priorityQueue.pop()
 
-                    priorityQueue.update(newNode, newCost)
-    return moves
+        # check if the current node has been visited or not
+        # check if we have a lower cost
+        if (node_state not in visited) or (node_cost < visited[node_state]):
+            # update cost
+            visited[node_state] = node_cost
+            #check if we reached the goal
+            if problem.isGoalState(node_state):
+                # return path
+                return node_actions
+            else:
+                # expand current node
+                successors = list(problem.getSuccessors(node_state))
+                # successor[0] = state; successor[1] = legal actions
+                # successor[2] = cost
+                for successor in successors:
+                    # build the path
+                    path = node_actions + [successor[1]]
+                    # update the path's cost
+                    total_cost = node_cost + successor[2]
+                    new_node = (successor[0], path, total_cost)
+
+                    # create a new node and push it to the priority queue
+                    priorityQueue.update(new_node, total_cost)
+    # return path
+    return node_actions
 
 
 def nullHeuristic(state, problem=None):
@@ -212,8 +243,12 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     return []
 
 def iterativeDeepeningSearch(problem):
+    # ids uses a stack
     stack = util.Stack()
-    limit = 1
+    # ids runs dfs algorithm within a depth_bound
+    # if the goal is not reached withing the depth_bound
+    # we treat it as a dead-end
+    depth_bound = 0
 
     # repeat search until we reach the goal
     while True:
@@ -221,24 +256,37 @@ def iterativeDeepeningSearch(problem):
         visited = []
         # push the start node to the stack
         stack.push((problem.getStartState(), [], 0))
-        (state, dir, cost) = stack.pop()
-        visited.append(state)
-        while not problem.isGoalState(state):
-            successors = problem.getSuccessors(state)
+
+        # current_node[0] = node state; current_node[1] = node_actions
+        # current_node[2] = cost
+        current_node = stack.pop() # extract the node from the stack
+        # add it to the visited nodes list
+        visited.append(current_node[0])
+        # if the current node is not the goal, expand it
+        while not problem.isGoalState(current_node[0]):
+            successors = problem.getSuccessors(current_node[0])
             for successor in successors:
-                if(not successor[0] in visited) and (cost+successor[2]<=limit):
-                    stack.push((successor[0], dir+ [successor[1]], cost+successor[2]))
+                # check if the node has been visited or not
+                # check if the current depth is within depth_bound
+                if (not successor[0] in visited) and (current_node[2]+successor[2] <= depth_bound):
+                    # push successor to the stack
+                    stack.push(
+                        (successor[0], current_node[1] + [successor[1]], current_node[2]+successor[2]))
+                    # add successor to the visited nodes list
                     visited.append(successor[0])
                 
-            # if the goal is not reached withing the current depth, increase the depth and break
+            # if the goal is not reached within the current depth, increase the depth and break
             if stack.isEmpty():
                 break
             
-            (state, dir, cost) = stack.pop()
+            current_node = stack.pop()
 
-        if problem.isGoalState(state):
-                return dir
-        limit += 1
+        # if the current node is the goal, we return the path
+        if problem.isGoalState(current_node[0]):
+            return current_node[1]
+        
+        # the depth_bound increases when a dead end occurs
+        depth_bound += 1
 
 
 # Abbreviations

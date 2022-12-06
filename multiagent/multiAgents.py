@@ -305,7 +305,8 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                         getScore = maximizer(successor, depth + 1, alfa, beta)
 
                 else:
-                    getScore = minimizer(successor, depth, nextAgent, alfa, beta)
+                    getScore = minimizer(
+                        successor, depth, nextAgent, alfa, beta)
 
                 # we try to get the min value
                 if getScore < mn:
@@ -320,6 +321,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             return mn  # we return the minimum
 
         return maximizer(gameState, 0, -math.inf, math.inf)
+                    
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):

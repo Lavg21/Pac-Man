@@ -313,16 +313,22 @@ class CornersProblem(search.SearchProblem):
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        currentPosition = state[0]
-        visitedCorners = state[1]
-        if currentPosition in self.corners:
-            if currentPosition not in visitedCorners:
-                visitedCorners.append(currentPosition)
-            if len(visitedCorners) == 4:
+        current_position = state[0]
+        visited_corners = state[1]
+        # check if the current position is a corner
+        if current_position in self.corners:
+            # check if the corner has been visited
+            if current_position not in visited_corners:
+                # if not, we'll "mark" the corner so we know it has been visited
+                visited_corners.append(current_position)
+            # check if we've visited all corners
+            if len(visited_corners) == 4:
                 return True
             else:
+                # we still have corners to visi
                 return False
         else:
+            # current position is not a corner
             return False
         #util.raiseNotDefined()
 
@@ -338,7 +344,7 @@ class CornersProblem(search.SearchProblem):
         """
 
         x,y = state[0] #current position
-        visitedCorners = state[1]
+        visited_corners = state[1]
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
@@ -353,12 +359,17 @@ class CornersProblem(search.SearchProblem):
             nextx, nexty = int(x+dx), int(y+dy)
             nextNode = (nextx, nexty)
             hitsWall = self.walls[nextx][nexty]
+            # check if successor is not a wall
             if not hitsWall:
-                successorsVisitedCorners = list(visitedCorners)
+                # get the visited corners until now
+                successors_visited_corners = list(visited_corners)
+                # check if successor is a corner
                 if nextNode in self.corners:
-                    if nextNode not in successorsVisitedCorners:
-                        successorsVisitedCorners.append(nextNode)
-                successor = ((nextNode, successorsVisitedCorners), action, 1)
+                    # check if the corner has been visited
+                    if nextNode not in successors_visited_corners:
+                        # if not, we'll "mark" it now
+                        successors_visited_corners.append(nextNode)
+                successor = ((nextNode, successors_visited_corners), action, 1)
                 successors.append(successor)
 
         self._expanded += 1  # DO NOT CHANGE
@@ -532,18 +543,17 @@ def foodHeuristic(state, problem):
     "*** YOUR CODE HERE ***"
     start = problem.startingGameState
     foodList = foodGrid.asList()
-    dist = 0
+    distancesToFood = []
 
     #no food -> return 0
     if len(foodList) == 0:
         return 0
 
-    # return maximum distance between the current position and the farthest food
     for food in foodList:
-        distanceToFood = mazeDistance(position, food, start)
-        if distanceToFood > dist:
-            dist = distanceToFood
-    return dist
+        distancesToFood.append(mazeDistance(position, food, start))
+
+    # return maximum distance between the current position and the farthest food
+    return max(distancesToFood)
 
 
 class ClosestDotSearchAgent(SearchAgent):
